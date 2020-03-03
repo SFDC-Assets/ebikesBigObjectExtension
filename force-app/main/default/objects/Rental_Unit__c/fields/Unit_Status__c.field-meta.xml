@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Unit_Status__c</fullName>
+    <externalId>false</externalId>
+    <label>Unit Status</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Not Yet Deployed</fullName>
+                <default>false</default>
+                <label>Not Yet Deployed</label>
+            </value>
+            <value>
+                <fullName>Available</fullName>
+                <default>false</default>
+                <label>Available</label>
+            </value>
+            <value>
+                <fullName>Rented</fullName>
+                <default>false</default>
+                <label>Rented</label>
+            </value>
+            <value>
+                <fullName>In Storage</fullName>
+                <default>false</default>
+                <label>In Storage</label>
+            </value>
+            <value>
+                <fullName>Awaiting Repairs</fullName>
+                <default>false</default>
+                <label>Awaiting Repairs</label>
+            </value>
+            <value>
+                <fullName>Decommissioned</fullName>
+                <default>false</default>
+                <label>Decommissioned</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

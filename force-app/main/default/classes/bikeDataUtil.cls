@@ -1,4 +1,5 @@
 public with sharing class bikeDataUtil {
+    
     public static void makeRentalBikes(integer numberOfBikes, string status){
         //get list of bike product types
         //lets do a random distribution, all of status = status
@@ -130,6 +131,7 @@ public with sharing class bikeDataUtil {
         String guid = h.SubString(0,8) + '-' + h.SubString(8,12) + '-' + h.substring(12, 16) + '-' + h.substring(16, 20) + '-' + h.substring(20);
         return guid;
     }
+    
 }
 
 

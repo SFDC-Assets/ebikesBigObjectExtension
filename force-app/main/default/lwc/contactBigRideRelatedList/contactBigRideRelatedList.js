@@ -29,4 +29,5 @@ export default class ContactBigRideRelatedList extends LightningElement {
             this.error = error;
         }
     }
+    
 }

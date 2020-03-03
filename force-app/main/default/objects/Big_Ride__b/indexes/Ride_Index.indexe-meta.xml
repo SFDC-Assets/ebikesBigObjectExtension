@@ -7,7 +7,7 @@
     </fields>
     <fields>
         <name>Start_Time__c</name>
-        <sortDirection>ASC</sortDirection>
+        <sortDirection>DESC</sortDirection>
     </fields>
     <label>Ride Index</label>
 </Index>

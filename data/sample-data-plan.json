@@ -13,5 +13,10 @@
         "sobject": "Product__c",
         "resolveRefs": true,
         "files": ["Product__cs.json"]
+    },
+    {
+        "sobject": "Contact",
+        "resolveRefs": true,
+        "files": ["Contact.json"]
     }
 ]

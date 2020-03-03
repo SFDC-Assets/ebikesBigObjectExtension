@@ -51,8 +51,8 @@ public with sharing class bikeDataUtil {
     public static void makePredictableBRides(Integer numberOfRides){
         List<Big_Ride__b> newRideRecords = new List<Big_Ride__b>();
         for(Integer x=0;x<numberOfRides;x++){
-            string contactID = '0030R000010wUydQAE';
-            string rentalID = 'a040R000002euPeQAI';
+            string contactID = '';
+            string rentalID = '';
             Big_Ride__b newBike = bikeDataUtil.generateBigRide(contactID, rentalID);
             //newBike.Trip_ID__c = '1234567890123456789012345678901234567890123456789012345678901234567890';
             newRideRecords.add(newBike);
@@ -106,9 +106,9 @@ public with sharing class bikeDataUtil {
     }
     private static Big_Ride__b generateBigRide(string contactID, string RentalID){
         Big_Ride__b ride = new Big_Ride__b(contact__c=contactID, rental_unit__c=rentalID);
-        Decimal startLatitude = randBetween(19.50139, 64.85694);
+        Decimal startLatitude = randBetween(30.50139, 45.85694);
         Decimal endLatitude = randBetween(startLatitude-.1, startLatitude+.1);
-        Decimal startLongitude= randBetween(-161.75583, -68.01197);
+        Decimal startLongitude= randBetween(-121.75583, -65.01197);
         Decimal endLongitude = randBetween(startLongitude-.1, startLongitude+.1);
         ride.start_location_lat__c = startLatitude;
         ride.start_location_long__c = startLongitude;

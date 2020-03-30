@@ -6,10 +6,6 @@ const rideColumns = [
     {label: 'Start Time', fieldName: 'Start_Time__c', type: 'date-local'},
     {label: 'End Time', fieldName: 'End_Time__c', type: 'date-local'},
     {label: 'Rental Unit ID', fieldName: 'Rental_Unit__c'},
-    //{label: 'Start Latitude', fieldName: 'Start_Location_Lat__c'},
-    //{label: 'Start Longitude', fieldName: 'Start_Location_Long__c'},
-    //{label: 'End Latitude', fieldName: 'End_Location_Lat__c'},
-    //{label: 'End Longitude', fieldName: 'End_Location_Long__c'},
     {label: 'Trip ID', fieldName: 'Trip_ID__c'}
 ];
 
@@ -22,6 +18,8 @@ export default class ContactBigRideRelatedList extends LightningElement {
     @wire(getCustomerRecentRideRecords, {contactID: '$recordId'})
     handleRideRecords(data, error){
         if(data){
+            console.log('data');
+            console.log(data);
             this.rideRecords = data;
             this.error = undefined;
         }else if(error){

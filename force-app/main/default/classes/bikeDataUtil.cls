@@ -45,7 +45,19 @@ public with sharing class bikeDataUtil {
             newRideRecords.add(bikeDataUtil.generateBigRide(contacts[contactIndex].id, rentalUnits[rentalIndex].id));
         }
         system.debug('HERE WE GO');
-        Database.insertImmediate(newRideRecords);
+        List<Database.SaveResult> srs = Database.insertImmediate(newRideRecords);
+        for(Database.SaveResult sr : srs){
+            if(sr.isSuccess())
+            {
+                system.debug('We did it ' + sr.getId());
+            }else{
+                for(Database.Error err : sr.getErrors()){
+                    system.debug('shit blew up');
+                    system.debug(err.getStatusCode() + ':' + err.getMessage());
+                    system.debug('fields that affected - ' + err.getFields());
+                }
+            }
+        }
     }
 
     public static void makePredictableBRides(Integer numberOfRides){
@@ -115,6 +127,7 @@ public with sharing class bikeDataUtil {
         ride.end_location_lat__c = endLatitude;
         ride.end_location_long__c = endLongitude;
         DateTime startTime = DateTime.newInstance(
+            //Jan 1 2018 - Apr 1 2020
             (Long)Math.floor(randBetween(1514764800801.0,1585699200801.0))
         );
         DateTime endTime = startTime.addSeconds(Integer.valueOf(randBetween(108, 10800)));

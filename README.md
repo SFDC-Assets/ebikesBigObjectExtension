@@ -1,3 +1,16 @@
+# But also other stuff
+
+## Install
+make sure you use the config in THIS repo, not another one - your def file must include FieldAuditTrail
+`force source push`
+`force user permset assign -n ebikes`
+
+`sfdx force data tree import`
+--run apex classes to generate datas--
+`sfdx force apex execute -f config/rentalLoad`
+
+
+
 # E-Bikes Lightning Web Components Sample Application
 
 [![Github Workflow](<https://github.com/trailheadapps/ebikes-lwc/workflows/Salesforce%20DX%20(scratch%20org)/badge.svg?branch=master>)](https://github.com/trailheadapps/ebikes-lwc/actions?query=workflow%3A%22Salesforce+DX+%28scratch+org%29%22)

@@ -1,0 +1,19 @@
+<template>
+    <lightning-card title="Rental Product Image" icon-name="standard:link">
+        <div class="slds-m-horizontal_medium">
+            <template if:true={productRow.data}>
+                <figure class="slds-image slds-image--card">
+                    <a href="javascript:void(0);" class="slds-image__crop slds-image__crop--16-by-9">
+                      <img src={Product_URL__c} alt={Name} />
+                    </a>
+                    <figcaption class="slds-image__title slds-image__title--card">
+                      <span class="slds-image__text slds-truncate" title={Name}>{Name}</span>
+                    </figcaption>
+                  </figure>
+            </template>
+            <template if:true={productRow.error}>
+                Wuhoh.
+            </template>
+        </div>
+    </lightning-card>
+</template>

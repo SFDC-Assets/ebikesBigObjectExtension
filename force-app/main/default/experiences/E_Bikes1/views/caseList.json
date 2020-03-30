@@ -10,9 +10,9 @@
   }, {
     "components" : [ {
       "componentAttributes" : {
-        "enableInlineEdit" : true,
+        "enableInlineEdit" : false,
         "filterName" : "{!filterId}",
-        "layout" : "FULL",
+        "layout" : "COMPACT",
         "pageSize" : 25,
         "scope" : "{!objectName}",
         "showActionBar" : true,

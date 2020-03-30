@@ -49,6 +49,7 @@
     "regionName" : "content",
     "type" : "region"
   }, {
+    "components" : [ ],
     "id" : "5675183e-90a4-4319-9a68-ec255416a666",
     "regionName" : "footer",
     "type" : "region"

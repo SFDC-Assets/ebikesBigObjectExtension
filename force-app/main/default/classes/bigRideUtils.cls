@@ -37,6 +37,7 @@ public with sharing class bigRideUtils {
         return rideList;
     }
 
+    //to async-ride
     public static void aqRidesByTimePeriod (Datetime startDate, Datetime endDate){
 
         string jobID;
@@ -82,6 +83,7 @@ public with sharing class bigRideUtils {
         }
     }
 
+    //to async-aggregate
     public static void aqRidesByContactByProduct (){
         string query = 'SELECT Contact__c, Rental_Unit__r.product__c, COUNT(Trip_Id__c) c FROM Big_Ride__b GROUP BY Contact__c,Rental_Unit__r.product__c';
         string targetObject = 'Async_Aggregate_Calc__c';

@@ -33,15 +33,9 @@
     <columns>
         <field>FK_NAME</field>
     </columns>
-    <filter>
-        <criteriaItems>
-            <column>FK_CUSTENT_ID</column>
-            <columnToColumn>false</columnToColumn>
-            <isUnlocked>false</isUnlocked>
-            <operator>equals</operator>
-            <value>a033F000002MdBQ</value>
-        </criteriaItems>
-    </filter>
+    <columns>
+        <field>FK_CUSTENT_ID</field>
+    </columns>
     <format>Summary</format>
     <groupingsDown>
         <aggregateType>Sum</aggregateType>
@@ -57,7 +51,7 @@
         <value>1</value>
     </params>
     <reportType>CustomEntity$Async_Aggregate_Calc__c@Async_Aggregate_Calc__c.Product__c</reportType>
-    <scope>user</scope>
+    <scope>organization</scope>
     <showDetails>true</showDetails>
     <showGrandTotal>true</showGrandTotal>
     <showSubTotals>true</showSubTotals>

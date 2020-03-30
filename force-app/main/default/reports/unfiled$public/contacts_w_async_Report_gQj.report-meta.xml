@@ -29,15 +29,6 @@
         <aggregateTypes>Sum</aggregateTypes>
         <field>Contact.Async_Aggregate_Calcs__r$Number_of_rides__c</field>
     </columns>
-    <filter>
-        <criteriaItems>
-            <column>Contact$Id</column>
-            <columnToColumn>false</columnToColumn>
-            <isUnlocked>false</isUnlocked>
-            <operator>equals</operator>
-            <value>0033F00000NpmGt</value>
-        </criteriaItems>
-    </filter>
     <format>Summary</format>
     <groupingsDown>
         <aggregateType>Sum</aggregateType>

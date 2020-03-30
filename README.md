@@ -1,14 +1,36 @@
-# But also other stuff
+# CDG's thing where he added BOBJ onto stuff.
 
 ## Install
-make sure you use the config in THIS repo, not another one - your def file must include FieldAuditTrail
-`force source push`
-`force user permset assign -n ebikes`
+make sure you use the config in THIS repo, not another one - your def file must include FieldAuditTrail in the json as a feature, or you don't get ASOQL.
+`force:source:push`
+`force:user:permset:assign -n ebikes`
 
-`sfdx force data tree import`
+`sfdx force:data:tree:import --plan ./data/sample-data-plan.json`
+
+`sfdx force:user:password:generate` - you gonna want this for workbenchery ( you can get the pw/un anytime after by running `sfdx force:user:display`)
+
 --run apex classes to generate datas--
-`sfdx force apex execute -f config/rentalLoad`
+`sfdx:force:apex:execute -f config/rentalLoad`
+this is gonna throw 10 jobs into your queue for 10k rows each to be generated/written to the big object big_ride__b
+### Now the part where you wait. Seriously - wait like hell 15m or so just to ensure all the jobs are done.
 
+### Done waiting? Cool load that app up.
+The best place you'll be able to see anything immediately - go to the Contact detail for really any Contact and you should see a BOBj related list. That's a transactional SOQL query against the object. This should have ~25 rows.
+
+### Time to wait more!
+`sfdx force:apex:execute -f config/asyncRideLoader.apex`
+This is gonna put in an async soql job to do a COUNT() on a joined query against big_ride__b and Rental_Unit__c. It'll deposit in (async_ride__c). Expect this to take like 10-15m, come back later.
+
+Ok, that's in - you'll know when the Async_ride__c object is populated. Once that's in, it's time to use that data more effectively than just replication from the bigger store. This is where you wait more lol. 
+Run `sfdx force:apex:execute -f config/batchHoursRunner.apex` this will kick off batch apex on that async_ride object to calculate parent total operating hours.
+
+### But wait, more.
+`sfdx force:apex:execute -f config/asyncAggLoader.apex`
+This is gonna put in an async soql job to pull a year's worth of rides (2019) into an SObject(async_aggregate_calc__c) for processing. Expect this to take ~10-15m. So come back later.
+
+Ok, now that THIS is in, your reports will magically work. Which reports? There's one on the contact layout, showing the most common model of bike this person's ridden (so sales can pitch em a bike).
+
+Retained the original readme for retention?
 
 
 # E-Bikes Lightning Web Components Sample Application

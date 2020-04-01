@@ -117,7 +117,7 @@ public with sharing class bigRideUtils {
 
         try{
             res = http.send(req);
-            System.debug('response');
+            System.debug('Job Locked and Loaded:');
             system.debug(res.toString());
             System.debug(res.getBody());
         }catch(System.CalloutException e){

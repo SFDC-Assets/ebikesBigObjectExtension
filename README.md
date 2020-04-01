@@ -1,61 +1,7 @@
-# CDG's thing where he added BOBJ onto stuff.
+# CDG's thing where he added BOBJ onto ebikes.
+An unofficial fork from [Trailhead Apps' Ebikes Repo](https://github.com/trailheadapps/ebikes-lwc)
 
-## Install
-make sure you use the config in THIS repo, not another one - your def file must include FieldAuditTrail in the json as a feature, or you don't get ASOQL.
-`force:source:push`
-`force:user:permset:assign -n ebikes`
-
-`sfdx force:data:tree:import --plan ./data/sample-data-plan.json`
-
-`sfdx force:user:password:generate` - you gonna want this for workbenchery ( you can get the pw/un anytime after by running `sfdx force:user:display`)
-
---run apex classes to generate datas--
-`sfdx:force:apex:execute -f config/rentalLoad`
-this is gonna throw 10 jobs into your queue for 10k rows each to be generated/written to the big object big_ride__b
-### Now the part where you wait. Seriously - wait like hell 15m or so just to ensure all the jobs are done.
-
-### Done waiting? Cool load that app up.
-The best place you'll be able to see anything immediately - go to the Contact detail for really any Contact and you should see a BOBj related list. That's a transactional SOQL query against the object. This should have ~25 rows.
-
-### Time to wait more!
-`sfdx force:apex:execute -f config/asyncRideLoader.apex`
-This is gonna put in an async soql job to do a COUNT() on a joined query against big_ride__b and Rental_Unit__c. It'll deposit in (async_ride__c). Expect this to take like 10-15m, come back later.
-
-Ok, that's in - you'll know when the Async_ride__c object is populated. Once that's in, it's time to use that data more effectively than just replication from the bigger store. This is where you wait more lol. 
-Run `sfdx force:apex:execute -f config/batchHoursRunner.apex` this will kick off batch apex on that async_ride object to calculate parent total operating hours.
-
-### But wait, more.
-`sfdx force:apex:execute -f config/asyncAggLoader.apex`
-This is gonna put in an async soql job to pull a year's worth of rides (2019) into an SObject(async_aggregate_calc__c) for processing. Expect this to take ~10-15m. So come back later.
-
-Ok, now that THIS is in, your reports will magically work. Which reports? There's one on the contact layout, showing the most common model of bike this person's ridden (so sales can pitch em a bike).
-
-Retained the original readme for retention?
-
-
-# E-Bikes Lightning Web Components Sample Application
-
-[![Github Workflow](<https://github.com/trailheadapps/ebikes-lwc/workflows/Salesforce%20DX%20(scratch%20org)/badge.svg?branch=master>)](https://github.com/trailheadapps/ebikes-lwc/actions?query=workflow%3A%22Salesforce+DX+%28scratch+org%29%22)
-
-![ebikes-logo](ebikes-logo.png)
-
-E-Bikes is a sample application that demonstrates how to build applications with Lightning Web Components and integrate with Salesforce Communities. E-Bikes is a fictitious electric bicycle manufacturer. The application helps E-Bikes manage their products and reseller orders using a rich user experience.
-
-> This sample application is designed to run on Salesforce Platform. If you want to experience Lightning Web Components on any platform, please visit https://lwc.dev, and try out our Lightning Web Components sample application [LWC Recipes OSS](https://github.com/trailheadapps/lwc-recipes-oss).
-
-## Table of contents
-
--   [Installing E-Bikes using a scratch org](#installing-e-bikes-using-a-scratch-org)
-
--   [Installing E-Bikes using a Developer Edition Org](#installing-e-bikes-using-a-developer-edition-org)
-
--   [Optional installation instructions](#optional-installation-instructions)
-
--   [Salesforce Application Walkthrough](#salesforce-application-walkthrough)
-
--   [Communities Application Walkthrough](#communities-application-walkthrough)
-
-## Installing E-Bikes using a Scratch Org
+## Install with a scratch org
 
 1. Set up your environment. Follow the steps in the [Quick Start: Lightning Web Components](https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/) Trailhead project. The steps include:
 
@@ -77,8 +23,7 @@ git clone https://github.com/trailheadapps/ebikes-lwc
 cd ebikes-lwc
 ```
 
-4. Create a scratch org and provide it with an alias (**ebikes** in the command below):
-
+4. Create a scratch org and provide it with an alias (**ebikes** in the command below) - in order to work with Async SOQL, you need to ensure your config file (if you are weird and don't use the one included with this repository) has 'FieldAuditTrail' listed in the 'features' array. If that doesn't make sense, just use the file I gave you:
 ```
 sfdx force:org:create -s -f config/project-scratch-def.json -a ebikes
 ```
@@ -101,197 +46,56 @@ sfdx force:user:permset:assign -n ebikes
 sfdx force:data:tree:import --plan ./data/sample-data-plan.json
 ```
 
-8. Deploy Community metadata
-
+8. Get your password generated, so you can use workbench to check on things every now and then.
 ```
-sfdx force:mdapi:deploy -u ebikes --deploydir mdapiDeploy/unpackaged -w 5
+sfdx force:user:password:generate
 ```
+If you need your password in the future, run `sfdx force:user:display`.
 
-9. Open the scratch org:
+9. Generate Big Object rows for Big_Ride__b. This will create 10 jobs in your apex queue, each to generate 10,000 rows in the big object Big_Ride__b. It will probably take awhile. 
+```
+sfdx:force:apex:execute -f config/rentalLoad.apex
+```
+To check your job statuses, go into Setup->Apex Jobs, and you should see all the newly created jobs listed. You'll know you're good to go when they all say 'Completed'. Expect maybe 10m?
 
+10. Run your first async SOQL job. This will extract all Big_Ride__b rows where startDate is within 2019, and insert into an SObject called 'Async_Ride__c'. If you want to change that date for whatever reason, it's in the asyncRideLoader.apex file (which is in this repository, not a class loaded to Salesforce)
+```
+sfdx force:apex:execute -f config/asyncRideLoader.apex
+```
+So this is going to be our first Async SOQL job. Let's explain what we're doing - This job will do an extract of all Rides taken in the last year - and then bringing it into an SObject called Async_Ride__c. Why? Async SOQL jobs allow us to query outside the bounds of indexes - so I can ask for much more, and deposit that chunk in either another Big Object or an SObject. 
+
+We're getting the year's worth of data so we can calculate the operational hours of every rental unit during that time. We'll just add up and increment a value on the related rental_unit. Easy Apex, but this is how we do that across a datastore that might include BILLIONS of rows - that Apex would time out otherwise. 
+
+It's unfortunately not *super* simple to get the status of an Async SOQL job, and they'll take minutes for sure. While we're waiting, it's time to...
+
+1.  Open up the app and make some clicks with all this code
 ```
 sfdx force:org:open
 ```
 
-10. In **Setup**, under **Themes and Branding**, activate the **Lightning Lite** theme.
+12. Add the Big Object related list to the contact page.
+Go to the Contact record page for any record, and hit the gear -> Edit Page. In App Builder, drag and drop the custom LWC component 'bigRideRelatedList' onto the page. Big Objects don't operate exactly like SObjects do - so you need a custom component in order to do a related list. This component is doing a synchronous SOQL query, just like any other, at the Big_Ride__b object and pulling back the Contact's most recent 25 rides. 
 
-11. In **Setup**, select **All Communities**. Click on **Builder** for the _E-Bikes_ Community.
+13.  (Optional) Let's learn a bit about the Custom Big Object(CBO) that's here, and also some supporting SObject cast while we wait.
+Setup -> Big Objects -> Big_Ride__b will show you the definition of the CBO we're working with here. It's a fairly simple flat table, and you can get to it using SOQL just like a custom object. You'll note at the bottom of the page though is the 'Index', made up of Contact, Start_Time__c. We defined this index the way we did because in looking at usecases we decided the most common request you're gonna get for a customer is to ask about a recent trip/trips. Due to how we physically store data in CBO - we need a pre-defined index to be able to get to data we want, otherwise you'd be searching forever, and the call would time out. If you want a real-world analogy, try to remember the days of Dewey Decimal systems in libraries. 
 
-12. Click **Publish**, to publish the community. Click on the workspace icon in the top left corner, then click **View E-Bikes** to see the live community.
+ The SOQL's WHERE clause has to follow the flow of the index - so, using the index built for this particular CBO, you'd have to at least filter by Contact, and then if you wanted further, filter by Start_Time__c. You can't skip Contact, and just filter by Start_Time__c, but you also can't get ranges of Contact's either (greater/less than). This needs to be planned for when using a Big Object.
 
-13. For experiencing the Salesforce app, open the App Launcher, and select the **E-Bikes** app.
+ You'll notice we have lookup fields - and that's interesting because...it's not an SObject. These will enable two things beyond just doing a simple text field, but come with one major caveat. It'll do validation at **write-time** just like SObjects to ensure that the value is a valid one, and it will allow us to do joins in Async SOQL jobs - which can be a massive advantage to using them. The caveat - note the bolded write-time above - if you were to look a ride up to a Contact, and then delete that Contact - nothing will check or validate the CBO Record(s) looking up to that Contact. You will need to act on your own to maintain consistency with the CBO table, which depending on how you built your index could mean a simple SOQL/DML statement, or a complete Async SOQL job. Furthermore - orphaned records are essentially corrupted, and you won't be able to write them to an SObject or other CBO's lookup field due to it being a newly invalidated value. The fun of distributed data.
 
-## Installing E-Bikes using a Developer Edition Org
-
-These steps assume you have followed the instructions above to install the application into a scratch org first, and now want to deploy it to a more permanent environment, including for completion of the [Lightning Web Components Basics Trailhead module](https://trailhead.salesforce.com/content/learn/modules/lightning-web-components-basics).
-
-1. It's recommended to sign up for a [new Developer Edition org](https://developer.salesforce.com/signup), to avoid conflicts with work you may have done in any other orgs. If you created a new Developer Edition org to serve as a DevHub, and haven't done other work in the org, you can use that org.
-
-2. Once you've logged in to the org, in **Setup**, under **My Domain**, [register a My Domain](https://help.salesforce.com/articleView?id=domain_name_setup.htm&type=5).
-
-3. In **Setup**, under **Communities Settings**, click the **Enable communities** checkbox, and then select and register a subdomain for your community.
-
-4. In **Setup**, under **Object Manager**, delete the custom **Product** picklist field from the **Case** object.
-
-5. At the command line, authenticate to your Developer Edition, and provide it with an alias (**ebikesDE** in the command below):
-
+14.   Check the Async_Ride__c object to see if it's full yet
+You can easily check it with the list view on the tab. Flip to All. It'll either be empty or big. No inbetween here. Once you see data in here, run
 ```
-sfdx force:auth:web:login -a ebikesDE
+sfdx force:apex:execute -f config/batchHoursRunner.apex
 ```
+This is gonna create a batch job to take the ride records you added, calculate the hour differential between Start/End times on that row, and then add/aggregate onto the related Rental_Unit__c. 
 
-5. Check out a new branch of the code, to make changes that will allow deployment to a Developer Edition org:
+In Setup, you'll find the batch jobs in ...the batch job page. I forget where this is just search :D
 
+15. Time for more Async SOQL - you can run this even if the batch apex isn't done yet.
 ```
-git checkout -b devOrg
+sfdx force:apex:execute -f config/asyncAggLoader.apex
 ```
+This Async SOQL job will do an aggregate function (COUNT()) and JOIN that with related Rental_Unit__c records and their related products - this is a big deal. We're counting the total number of rides and trying to connect Contacts to Products, so we can tell our Sales folk what type of rides our people like - Better STILL, this is going to be accessible from SF reports and dashboards. Because it's in an sObject. YUUP.
 
-6. In VS Code, use the Ctrl/Cmd-P shortcut for Quick Open. Type **E_Bikes.site** and click on the **E_Bikes.site-meta.xml** file to open it.
-
-7. Change the value in the **\<siteAdmin>** line to be your user name in the Developer Org, and change the value in the **\<subdomain>** line to be the subdomain you selected for your Communities (**codey<span>@</span>ebikes.dev** and **codeys-ebikes-developer-edition** in the example below). Save the file.
-
-```
-<siteAdmin>codey@ebikes.dev</siteAdmin>
-<siteType>ChatterNetwork</siteType>
-<subdomain>codeys-ebikes-developer-edition</subdomain>
-```
-
-8. Use Quick Open again to search for **Profile** and open **E-Bikes Profile.profile**. At the very end of the file, change the value in the **\<userLicense>** line to **Guest**. Save the file.
-
-```
-    <userLicense>Guest</userLicense>
-</Profile>
-```
-
-9. Deploy the app to your Developer Edition org:
-
-```
-sfdx force:source:deploy -p force-app/main/default -u ebikesDE
-```
-
-10. Assign the **ebikes** permission set to the default user:
-
-```
-sfdx force:user:permset:assign -n ebikes -u ebikesDE
-```
-
-11. Load sample data:
-
-```
-sfdx force:data:tree:import --plan ./data/sample-data-plan.json -u ebikesDE
-```
-
-12. Open the Developer org:
-
-```
-sfdx force:org:open -u ebikesDE
-```
-
-13. In **Setup**, under **Themes and Branding**, activate the **Lightning Lite** theme.
-
-14. In **Setup**, select **All Communities**. Click on **Builder** for the _E-Bikes_ Community.
-
-15. Click **Publish**, to publish the community. Click on the workspace icon in the top left corner, then click **View E-Bikes** to see the live community.
-
-16. For experiencing the Salesforce app, open the App Launcher, and select the **E-Bikes** app.
-
-17. If you want to work with the application in a scratch org in the future, you'll want to switch back to the **master** branch:
-
-```
-git checkout master
-```
-
-## Optional Installation Instructions
-
-This repository contains several files that are relevant if you want to integrate modern web development tooling to your Salesforce development processes, or to your continuous integration/continuous deployment processes.
-
-### Code formatting
-
-[Prettier](https://prettier.io/) is a code formatter used to ensure consistent formatting across your code base. To use Prettier with Visual Studio Code, install [this extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) from the Visual Studio Code Marketplace. The [.prettierignore](/.prettierignore) and [.prettierrc](/.prettierrc) files are provided as part of this repository to control the behavior of the Prettier formatter.
-
-### Code linting
-
-[ESLint](https://eslint.org/) is a popular JavaScript linting tool used to identify stylistic errors and erroneous constructs. To use ESLint with Visual Studio Code, install [this extension](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lwc) from the Visual Studio Code Marketplace. The [.eslintignore](/.eslintignore) file is provided as part of this repository to exclude specific files from the linting process in the context of Lighning Web Components development.
-
-### Pre-commit hook
-
-This repository also comes with a [package.json](./package.json) file that makes it easy to set up a pre-commit hook that enforces code formatting and linting by running Prettier and ESLint every time you `git commit` changes.
-
-To set up the formatting and linting pre-commit hook:
-
-1. Install [Node.js](https://nodejs.org) if you haven't already done so
-2. Run `npm install` in your project's root folder to install the ESLint and Prettier modules (Note: Mac users should verify that Xcode command line tools are installed before running this command.)
-
-Prettier and ESLint will now run automatically every time you commit changes. The commit will fail if linting errors are detected. You can also run the formatting and linting from the command line using the following commands (check out [package.json](./package.json) for the full list):
-
-```
-npm run lint:lwc
-npm run prettier
-```
-
-## Salesforce Application Walkthrough
-
-### Product Explorer
-
-1. Click the **Product Explorer** tab.
-
-2. Filter the list using the filter component in the left sidebar.
-
-3. Click a product in the tile list to see the details in the product card.
-
-4. Click the expand icon in the product card to navigate to the product record page.
-
-### Product Record Page
-
-1. The product record page features a **Similar Products** component.
-
-2. Click the **View Details** button to navigate to a similar product record page.
-
-### Reseller Orders
-
-1. Click the down arrow on the **Reseller Order** tab and click **New Reseller Order**.
-
-2. Select an account, for example **Wheelworks** and click **Save**.
-
-3. Drag a product from the product list on the right onto the gray panel in the center. The product is automatically added to the order as an order item.
-
-4. Modify the ordered quantity for small (S), medium (M), and large (L) frames and click the save button (checkmark icon).
-
-5. Repeat steps 3 and 4 to add more products to the order.
-
-6. Mouse over an order item tile and click the trash can icon to delete an order item from the order.
-
-### Account Record Page
-
-The account record page features an **Account Map** component that locates the account on a map.
-
-## Communities Application Walkthrough
-
-### Home
-
-1. See the custom hero component in Communities that pulls in rich assets and navigates to the product or product family that is configured.
-
-2. Check all the properties exposed in the hero component in Community Builder.
-
-### Create Case
-
-1. Select the _My Cases_ list view in the record list on the right side of the page.
-
-2. Fill in the details of the case on the left side of the page.
-
-3. Click on Create Case and see the record list to be updated with your new case.
-
-### Product Explorer
-
-1. Click the **Product Explorer** tab.
-
-2. Filter the list using the filter component in the left sidebar.
-
-3. Click a product in the tile list to see the details in the product card.
-
-4. Click the expand icon in the product card to navigate to the product record page.
-
-### Product Record Page
-
-1. The product record page features a **Similar Products** component.
-
-2. Click the **View Details** button to navigate to a similar product record page.
+Ok, now that THIS is in, your reports will magically work. Which reports? There's one on the contact layout, showing the most common model of bike this person's ridden (so sales can pitch em a bike).

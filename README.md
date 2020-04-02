@@ -1,7 +1,34 @@
-# CDG's thing where he added BOBJ onto ebikes.
-An unofficial fork from [Trailhead Apps' Ebikes Repo](https://github.com/trailheadapps/ebikes-lwc)
+# Custom Big Objects additive to the Ebikes repo _(ebikesBigObjectExtension)_
 
-## Install with a scratch org
+[![Salesforce API v48.0](https://img.shields.io/badge/Salesforce%20API-v48.0-blue.svg)]()
+[![Lightning Experience Required](https://img.shields.io/badge/Lightning%20Experience-Required-informational.svg)]()
+[![User License Platform](https://img.shields.io/badge/User%20License-Platform-032e61.svg)]()
+[![Apex Test Coverage 0](https://img.shields.io/badge/Apex%20Test%20Coverage-0-red.svg)]()
+
+>An extension of [Trailhead Apps' Ebikes Repo](https://github.com/trailheadapps/ebikes-lwc) adding a Big Object usecase through a rental bike IoT scenario.
+
+Hopefully this helps people 'get' Big Objects a bit better, vs external stores. We've got a rental ride object as a Custom Big Object(CBO), a custom UI component to do real-time queries against it, and some async SOQL jobs to show off the power of the data pipeline it provides us. Also a ton of quick scripts to execute it all quickly and easily.
+
+## Table of Contents
+<!-- Optional if doc is less than 100 lines total 
+    Link to all sections, start with the next one, don't include anything above. Capture all ## headings, optional to get ### and ####, you do you.
+-->
+- [Custom Big Objects additive to the Ebikes repo _(ebikesBigObjectExtension)_](#custom-big-objects-additive-to-the-ebikes-repo-ebikesbigobjectextension)
+  - [Table of Contents](#table-of-contents)
+  - [Background](#background)
+  - [Install](#install)
+    - [Dependencies](#dependencies)
+  - [Extra Sections](#extra-sections)
+    - [Security / Limitations](#security--limitations)
+  - [Maintainers](#maintainers)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## Background
+
+Custom Big Objects are still criminally underused. Salesforce Objects have a purpose, and are insanely flexible - but at certain scales you will see major performance implications as with any relational database. A multi-tenant processing logic tier isn't going to infinitely scale either, further complicating the processing of this data. CBO solves both problems, especially when keeping data close to Salesforce.
+
+## Install
 
 1. Set up your environment. Follow the steps in the [Quick Start: Lightning Web Components](https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/) Trailhead project. The steps include:
 
@@ -98,4 +125,26 @@ sfdx force:apex:execute -f config/asyncAggLoader.apex
 ```
 This Async SOQL job will do an aggregate function (COUNT()) and JOIN that with related Rental_Unit__c records and their related products - this is a big deal. We're counting the total number of rides and trying to connect Contacts to Products, so we can tell our Sales folk what type of rides our people like - Better STILL, this is going to be accessible from SF reports and dashboards. Because it's in an sObject. YUUP.
 
-Ok, now that THIS is in, your reports will magically work. Which reports? There's one on the contact layout, showing the most common model of bike this person's ridden (so sales can pitch em a bike).
+Ok, now that THIS is in, your reports will magically work. Which reports? There's one on the contact layout, showing the most common model of bike this person's ridden (so sales can pitch em a bike). This gets a bit further into the value of Async SOQL on CBO, vs Postgres or an external storage. You can perform a fairly complicated set of jobs with just a single API call, and let the system figure it out. Once it's in SObject form, you can then do whatever you want with it there, using the same tools you're used to.
+
+### Dependencies
+* The [Trailhead Apps' Ebikes Repo](https://github.com/trailheadapps/ebikes-lwc) - but that is included already in this repo as are their install instructions.
+
+## Extra Sections
+### Security / Limitations
+Few major things to understand with CBO
+* CBO is not the same database as an SObject - which means you are not within the same atomic transaction, nor do we do aggressive validation of consistency between both stores. Big important thing there to keep from corrupting data.
+* CBO does not have per-row permissions. Use your Apex or existing SObject row limitations as a means to control access and queries to CBO rows. Once you pull in CBO rows via Async SOQL to SObjects, place new row limitations on those as necessary.
+* Other stuff I forgot.
+
+## Maintainers
+[Cowie](https://github.com/cowie)
+
+## Contributing
+<!--Give instructions on how to contribute to this repository. Where do I ask questions? Do you accept PRs? What are the requirements to contribute? Don't be a jerk. Use issues if you can.-->
+
+Always looking for more usecases from anyone. Build ya code and add it in a pull req.
+Oh if y'all want to do my test code for me too, it's cool. Just sayin'.
+
+## License
+[MIT](LICENSE) © CDG

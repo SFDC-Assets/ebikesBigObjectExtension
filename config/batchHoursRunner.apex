@@ -1,2 +1,2 @@
 aqBatchHoursByUnit aqbatch = new aqBatchHoursByUnit();
-ID batchid = Database.executeBatch(aqBatchHoursByUnit);
+ID batchid = Database.executeBatch(aqbatch);

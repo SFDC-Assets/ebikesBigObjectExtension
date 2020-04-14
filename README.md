@@ -93,14 +93,20 @@ So this is going to be our first Async SOQL job. Let's explain what we're doing 
 
 We're getting the year's worth of data so we can calculate the operational hours of every rental unit during that time. We'll just add up and increment a value on the related rental_unit. Easy Apex, but this is how we do that across a datastore that might include BILLIONS of rows - that Apex would time out otherwise. 
 
-It's unfortunately not *super* simple to get the status of an Async SOQL job, and they'll take minutes for sure. While we're waiting, it's time to...
+To see the status of the Async SOQL job - your best bet is using Workbench. 
+```
+sfdx force:user:password:generate
+```
+This command will give your scratch user a proper login, which you can use to log into Workbench. Make sure to set the type of org as 'Sandbox' to make your login work. Then click on Queries->Async SOQL Queries, and click the View Status tab. This will show you the status of the jobs as they're running/completing.
 
-1.  Open up the app and make some clicks with all this code
+They'll take minutes for sure. While we're waiting, it's time to...
+
+11.   Open up the app and make some clicks with all this code
 ```
 sfdx force:org:open
 ```
 
-12. Add the Big Object related list to the contact page.
+12.  Add the Big Object related list to the contact page.
 Go to the Contact record page for any record, and hit the gear -> Edit Page. In App Builder, drag and drop the custom LWC component 'bigRideRelatedList' onto the page. Big Objects don't operate exactly like SObjects do - so you need a custom component in order to do a related list. This component is doing a synchronous SOQL query, just like any other, at the Big_Ride__b object and pulling back the Contact's most recent 25 rides. 
 
 13.  (Optional) Let's learn a bit about the Custom Big Object(CBO) that's here, and also some supporting SObject cast while we wait.

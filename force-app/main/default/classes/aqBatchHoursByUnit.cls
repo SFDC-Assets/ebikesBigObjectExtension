@@ -1,5 +1,9 @@
 global class aqBatchHoursByUnit implements Database.Batchable<SObject>{
 
+    //Batch processor to take records outputted by Async SOQL, and process operating hours from them.
+    //Basically, extract a subset of your big object, run Batch to do additional calculations, and store that in the 
+    //normal SObjects for workflows, etc.
+
     global Database.QueryLocator start(Database.BatchableContext bc){
         string query = 'SELECT Id, rental_unit__c, contact__c, trip_id__c, start_time__c, end_time__c FROM Async_ride__c';
         return Database.getQueryLocator(query);

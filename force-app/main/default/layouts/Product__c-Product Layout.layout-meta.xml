@@ -126,13 +126,20 @@
         <fields>Qty_S__c</fields>
         <relatedList>Order_Item__c.Product__c</relatedList>
     </relatedLists>
+    <relatedLists>
+        <fields>NAME</fields>
+        <fields>OBJECT_ID</fields>
+        <fields>Unit_Status__c</fields>
+        <fields>Operating_Hours__c</fields>
+        <relatedList>Rental_Unit__c.Product__c</relatedList>
+    </relatedLists>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showHighlightsPanel>false</showHighlightsPanel>
     <showInteractionLogPanel>false</showInteractionLogPanel>
     <showRunAssignmentRulesCheckbox>false</showRunAssignmentRulesCheckbox>
     <showSubmitAndAttachButton>false</showSubmitAndAttachButton>
     <summaryLayout>
-        <masterLabel>00h3F000000Suvp</masterLabel>
+        <masterLabel>00h1k0000011OwF</masterLabel>
         <sizeX>4</sizeX>
         <sizeY>0</sizeY>
         <summaryLayoutStyle>Default</summaryLayoutStyle>

@@ -1,12 +1,12 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import getCustomerRecentRideRecords from '@salesforce/apex/bigRideUtils.getCustomerRecentRideRecords';
+import getCustomerRecentRideRecords from '@salesforce/apex/bigRideUtils.getCustomRideRecords';
 
 const rideColumns = [
-    {label: 'Customer', fieldName: 'Contact__c'},
-    {label: 'Start Time', fieldName: 'Start_Time__c', type: 'date-local'},
-    {label: 'End Time', fieldName: 'End_Time__c', type: 'date-local'},
-    {label: 'Rental Unit ID', fieldName: 'Rental_Unit__c'},
-    {label: 'Trip ID', fieldName: 'Trip_ID__c'}
+    {label: 'Customer', type: 'url', fieldName: 'contactURL', typeAttributes:{label:{fieldName:'ContactName'}}},
+    {label: 'Start Time', fieldName: 'Start_Time', type: 'date-local'},
+    {label: 'End Time', fieldName: 'End_Time', type: 'date-local'},
+    {label: 'Rental Unit ID', fieldName: 'unitURL', type:'url', typeAttributes:{label:{fieldName:'Rental_UnitName'}}},
+    {label: 'Trip ID', fieldName: 'Trip_ID'}
 ];
 
 export default class ContactBigRideRelatedList extends LightningElement {

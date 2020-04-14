@@ -1,5 +1,8 @@
 public with sharing class bigRideUtils {
-    
+    //Basically a bunch of stuff to make working with the data in big_ride__b
+    //a lot simpler overall. 
+
+    //helper class to perform async API requests easier
     public class asyncRequest{
         public string query{get;set;}
         public string operation{get;set;}
@@ -28,16 +31,74 @@ public with sharing class bigRideUtils {
         }
     }
 
+    //class to return a more prepared data set back to the LWC 'related list' component
+    public class rideWrapper{
+        @AuraEnabled public string ContactName {get;set;}
+        @AuraEnabled public string contactURL{get;set;}
+        @AuraEnabled public string Rental_UnitName{get;set;}
+        @AuraEnabled public string unitURL{get;set;}
+        @AuraEnabled public dateTime Start_Time{get;set;}
+        @AuraEnabled public dateTime End_Time{get;set;}
+        @AuraEnabled public string Trip_ID{get;set;}
+
+
+        public rideWrapper(Big_Ride__b ride){
+            Start_Time = ride.Start_Time__c;
+            End_Time = ride.End_Time__c;
+            Trip_ID = ride.Trip_ID__c;
+        }
+        public rideWrapper(){}
+    }   
+    //converts raw Big_Ride__b records to the wrapper class.
+    public static List<rideWrapper> bikesToWrappers(List<Big_Ride__B> rideList){
+        List<rideWrapper> finalList = new list<rideWrapper>();
+        Map<Id,Contact> contactMap = new Map<Id,Contact>();
+        Map<Id,Rental_Unit__c> unitMap = new Map<Id, Rental_Unit__c>();
+        for(Big_Ride__b ride : rideList){
+            contactMap.put(ride.contact__c, new Contact());
+            unitMap.put(ride.rental_unit__c, new Rental_Unit__c());
+        }
+        for(Contact c : [select id, name from Contact where id in:contactMap.keySet()]){
+            contactMap.put(c.id, c);
+        }
+        for(Rental_Unit__c r : [select id, name from Rental_Unit__c where id in :unitMap.keySet()]){
+            unitMap.put(r.id, r);
+        }
+        for(Big_Ride__b ride : rideList){
+            rideWrapper wrapper = new rideWrapper(ride);
+            wrapper.contactName = contactMap.get(ride.contact__c).name;
+            wrapper.Rental_UnitName = unitMap.get(ride.Rental_Unit__c).name;
+            wrapper.contactURL = URL.getSalesforceBaseUrl().toExternalForm() + '/lightning/r/Contact/' + ride.Contact__c + '/view';
+            wrapper.unitURL = URL.getSalesforceBaseUrl().toExternalForm() + '/lightning/r/Rental_Unit__c/' + ride.Rental_Unit__c + '/view';
+            finalList.add(wrapper);
+        }
+        return finalList;
+    }
+
+    //Fetch and return big ride data, within the wrapper construct to make for good Lookup fields
+    @AuraEnabled(cacheable=true)
+    public static List<rideWrapper> getCustomRideRecords(string contactID){
+        List<Big_Ride__b> rideList = [SELECT contact__c, rental_unit__c, start_location_lat__c, start_location_long__c,
+                                        end_location_lat__c, end_location_long__c, start_time__c, end_time__c, trip_id__c
+                                        FROM Big_Ride__b
+                                        WHERE Contact__c = :contactID ORDER BY contact__c, start_time__c desc limit 10];
+        //return rideList;
+        List<rideWrapper> rideReturn = bikesToWrappers(rideList);
+        return rideReturn;
+    }
+
+    /*Deprecated - not needed, using the custom one above
     @AuraEnabled(cacheable=true)
     public static List<Big_Ride__b> getCustomerRecentRideRecords(string contactID){
         List<Big_Ride__b> rideList = [SELECT contact__c, rental_unit__c, start_location_lat__c, start_location_long__c,
                                         end_location_lat__c, end_location_long__c, start_time__c, end_time__c, trip_id__c
                                         FROM Big_Ride__b
-                                        WHERE Contact__c = :contactID ORDER BY contact__c, start_time__c desc limit 25];
+                                        WHERE Contact__c = :contactID ORDER BY contact__c, start_time__c desc limit 10];
         return rideList;
-    }
+    }*/
 
-    //to async-ride
+    //Method to do an async SOQL call for the operating hours usecase: get all rides within a date range
+    //to dump into an SOBject for further processing in Apex/Batch.
     public static void aqRidesByTimePeriod (Datetime startDate, Datetime endDate){
 
         string jobID;
@@ -83,7 +144,8 @@ public with sharing class bigRideUtils {
         }
     }
 
-    //to async-aggregate
+    //Method to do an async SOQL call for the contact's report usecase: Scan full table, group by contact, 
+    //join with rental_ride data. 
     public static void aqRidesByContactByProduct (){
         string query = 'SELECT Contact__c, Rental_Unit__r.product__c, COUNT(Trip_Id__c) c FROM Big_Ride__b GROUP BY Contact__c,Rental_Unit__r.product__c';
         string targetObject = 'Async_Aggregate_Calc__c';
